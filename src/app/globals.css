@@ -3,21 +3,58 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --max-width: 1280px;
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: 0 auto;
+  text-align: center;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+
+  line-height: 1.5;
+
+  color: rgba(255, 255, 255, 0.87);
+  background: linear-gradient(
+    153deg,
+    /* Dark Charcoal */ rgba(29, 29, 29, 0.996),
+    /* Gunmetal Blue */ rgba(44, 62, 80, 0.904),
+    /* Deep Purple */ rgba(58, 43, 93, 0.927),
+    /* Jet Black */ rgba(18, 18, 18, 0.992),
+    /* Dark Charcoal  */ rgba(29, 29, 29, 0.996)
+  );
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  animation: smoothHorizontalShift 14s linear infinite alternate;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  align-items: center;
+  justify-content: center;
+}
+
+header {
+  display: flex;
+  justify-content: space-evenly;
+
+  position: absolute;
+  top: 0;
+
+  margin: 1rem;
 }
 
 @layer utilities {
