@@ -1,36 +1,17 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Basic Social Network
 
-## Getting Started
+This project involves creating a social network utilising Clerk and Radix UI elements. Clerk operates as a login system which heavily simplifies the method I was using in my past project. Using my clerk user id I can retrieve data from the login related to that account without needing to store it in a database first. Using Radix I can create elements rendering on my page quickly and easily.
 
-First, run the development server:
+### Project Setup
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+To setup this project I used `npx create-next-app@latest` and selected Typescript. Having just been introduced to typed variables I wanted to see if I could utilise them in this project too. From here deleted the fonts folder and removed them from the layout.tsx file. I then ran `npm i pg` and created a utils folder containing my connect.ts file that linked to my db. I then created a env.local file and placed my db url inside.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Clerk
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+To setup Clerk, I went to their website and created a new project. I then grabbed the api keys and placed these inside my env file. From here I ran `npm i @clerk/nextjs` and followed this guide: https://clerk.com/docs/quickstarts/nextjs. From here I started work on creating the custom sign in/ sign up pages, for this I used this guide: https://clerk.com/docs/references/nextjs/custom-signup-signin-pages.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Forms
 
-## Learn More
+During my last project, I realised how often I needed to use forms and their submissions to make database queries. Based on this I wanted to create a form component that was modular, so I could quickly create a form on any page by simply by using the component and passing the data the form needed to gather using props. Also, instead of passing the data over to an src/api location, I wanted to be able to handle the database requests on each individual page using the handleFormSubmit function with "use server". This would be a little more elegant in my opinion and should in theory perform better.
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+To start this process I went over to https://www.radix-ui.com/primitives/docs/components/form and grabbed their example usage of the form. I then followed the installation instructions to insure I had the correct modules.
