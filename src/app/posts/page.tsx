@@ -1,25 +1,34 @@
+import AllPosts from "@/components/AllPosts";
 import { connect } from "@/utils/connect";
 import { auth } from "@clerk/nextjs/server";
+import dynamic from "next/dynamic";
 
 const { userId } = auth();
-const db = connect();
 
-interface Post {
-  id: number;
-  content: string;
+const ModularForm = dynamic(() => import("@/components/ModularForm"), {
+  ssr: false,
+});
+
+async function profileCheck() {
+  "use server";
+  const db = connect();
+  const profile = await db.query(
+    `SELECT * FROM social_profiles WHERE clerk_id = $1`,
+    [userId]
+  );
+  // conditional rendering based on profile
+  if (profile.rowCount === 0) {
+    return (
+      <div>
+        <p>Login and setup profile to create a post.</p>
+        <AllPosts />
+      </div>
+    );
+  }
+  return null; // allows further rendering
 }
 
-export default async function PostsPage() {
-  const { rows } = await db.query<Post>(`
-SELECT 
-    social_posts.id,
-    social_profiles.username,
-    social_posts.content
-FROM social_posts
-INNER JOIN social_profiles ON social_posts.clerk_id = social_profiles.clerk_id;
-    `);
-  console.log(rows);
-
+export default async function Page() {
   async function handleCreatePost(formData: FormData) {
     "use server";
     const db = connect();
@@ -32,26 +41,29 @@ INNER JOIN social_profiles ON social_posts.clerk_id = social_profiles.clerk_id;
     );
   }
 
+  const fields = [
+    {
+      name: "content",
+      label: "Post content",
+      type: "textarea",
+      required: true,
+    },
+  ];
+
+  // Await the result of profileCheck to conditionally render
+  const profileResult = await profileCheck();
+
+  if (profileResult) {
+    return profileResult; // If renderPage returns, render its JSX
+  }
+
   return (
     <div>
-      <h2>Posts</h2>
-      <h3>Add new posts</h3>
-      <form action={handleCreatePost}>
-        <textarea content="content" placeholder="New Post"></textarea>
-        <button type="submit">Submit</button>
-      </form>
-
-      <h3>All posts</h3>
-      {rows.map((post) => {
-        return (
-          <div key={post.id}>
-            <h4>Username</h4>
-            <p>{post.content}</p>
-          </div>
-        );
-      })}
+      <h1>Form Page</h1>
+      <ModularForm fields={fields} onSubmit={handleCreatePost} />
+      <AllPosts />
     </div>
   );
 }
 
-//note: use this somewhere import { revalidatePath } from 'next/navigation';
+//note: use this somewhere: import { revalidatePath } from 'next/navigation';

@@ -12,7 +12,12 @@ export default function Header() {
       <SignedIn>
         <UserButton />
       </SignedIn>
-      <Link href="/profile">Profile</Link>
+      <Link href="/profile" className={style["link"]}>
+        Profile
+      </Link>
+      <Link href="/posts" className={style["link"]}>
+        Posts
+      </Link>
     </header>
   );
 }

@@ -1,6 +1,7 @@
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { connect } from "@/utils/connect";
+import ModularForm from "@/components/ModularForm";
 
 export default async function ProfilePage() {
   const { userId } = auth();
@@ -33,6 +34,17 @@ export default async function ProfilePage() {
     }
   }
 
+  const fields = [
+    {
+      name: "username",
+      label: "Username",
+      type: "username",
+      required: true,
+      validationMessage: "Please provide a unique username",
+    },
+    { name: "bio", label: "Bio", type: "textarea", required: false },
+  ];
+
   console.log(user);
   return (
     <div>
@@ -46,12 +58,8 @@ export default async function ProfilePage() {
       <SignedOut>
         <h2>Please sign in.</h2>
       </SignedOut>
-
-      <form action={handleUpdateProfile}>
-        <input name="username" placeholder="Username" />
-        <textarea name="bio" placeholder="Bio" />
-        <button type="submit">Submit</button>
-      </form>
+      <p>Finish your profile setup:</p>
+      <ModularForm fields={fields} onSubmit={handleUpdateProfile} />
     </div>
   );
 }

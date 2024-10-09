@@ -1,6 +1,6 @@
 # Basic Social Network
 
-This project involves creating a social network utilising Clerk and Radix UI elements. Clerk operates as a login system which heavily simplifies the method I was using in my past project. Using my clerk user id I can retrieve data from the login related to that account without needing to store it in a database first. Using Radix I can create elements rendering on my page quickly and easily.
+This project involves creating a social network utilising Clerk and Radix UI elements. Clerk operates as a login system which heavily simplifies the method I was using in my past project. Using my clerk user id I can retrieve data from the login related to that account without needing to store it in a database first. This means I only really need 3 database tables to complete the task I did last week using 5 since Clerk can handle the majority of the work. Alongside this, clerk has login integration with other services such as Google, GitHub etc which offers the ability to one click login to the service, something I never implamented previously. Using Radix I can create elements rendering on my page quickly and easily.
 
 ### Project Setup
 
@@ -14,4 +14,41 @@ To setup Clerk, I went to their website and created a new project. I then grabbe
 
 During my last project, I realised how often I needed to use forms and their submissions to make database queries. Based on this I wanted to create a form component that was modular, so I could quickly create a form on any page by simply by using the component and passing the data the form needed to gather using props. Also, instead of passing the data over to an src/api location, I wanted to be able to handle the database requests on each individual page using the handleFormSubmit function with "use server". This would be a little more elegant in my opinion and should in theory perform better.
 
-To start this process I went over to https://www.radix-ui.com/primitives/docs/components/form and grabbed their example usage of the form. I then followed the installation instructions to insure I had the correct modules.
+To start this process I went over to https://www.radix-ui.com/primitives/docs/components/form and grabbed their example usage of the form. I then followed the installation instructions to insure I had the correct modules. This included running `npm i @radix-ui/colors` which isn't mentioned in the doc as required despite the css styles relying on it.
+
+From here I needed a way of passing my handle submit function back to the page where this component is being used. Since props can only be passed down, I needed a way of sending this data back up. This is when I came across the concept of something called dynamic from next/dynamic. This is a Next.js function which allows me to dynamically import components which will only fetch the component when it's needed. The `ssr: false` object here determins whether to use server side rendering or not based on the result of a boolean. Since my form is a client component ssr false is ideal in this scenario. Essentially how it works is in two parts. On the server, Next.js will know not to render thee ModularForm component, and will instead use placeholder HTML which will later be filled in by the client. On the client, once the page is loaded it will hit the dynamic import where the component is fetched, replacing the placeholder with the actual rendered component. Because my client component has server side dependancies, this method ensures it doesn't break when calling the function handling the submit passed down as a prop.
+
+As for the parameters that define what the form actually looks like, I refered to the docs in the link above and had a look what information each of those imported components can take and strucured my fields based on this. I settled on a name, refering to the name of the field, which is what I can reference using dot notation I can use from the outputted formData, the label which will display above the rendered input element, the type, a boolean to determin whether that field is required or not and an optional validation message.
+
+To summarise the above, when defining data to pass down as a prop to the form I should do something similar to the following (based on the example found in the docs):
+
+```ts
+const ModularForm = dynamic(() => import("@/components/ModularForm"), {
+  ssr: false,
+});
+
+export default async function Page() {
+  async function handleSubmit(formData: FormData) {
+    "use server";
+    const db = connect();
+    // db query code here
+  }
+
+  const fields = [
+    {
+      name: "email",
+      label: "Email",
+      type: "email",
+      required: true,
+      validationMessage: "Please provide a valid email",
+    },
+    { name: "question", label: "Question", type: "textarea", required: true },
+  ];
+
+  return (
+    <div>
+      <ModularForm fields={fields} onSubmit={handleSubmit} />
+    </div>
+  );
+}
+```
