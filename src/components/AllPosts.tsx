@@ -1,14 +1,15 @@
 import { connect } from "@/utils/connect";
+import Link from "next/link";
 
 const db = connect();
 
-interface Post {
+type Post = {
   id: number;
   content: string;
   username: string;
-}
+};
 
-export default async function AllPosts() {
+const AllPosts: React.FC = async () => {
   const { rows } = await db.query<Post>(`
     SELECT 
         social_posts.id,
@@ -25,11 +26,14 @@ export default async function AllPosts() {
       {rows.map((post) => {
         return (
           <div key={post.id}>
-            <h4>{`${post.username} Posted:`}</h4>
+            <Link
+              href={`/u/${post.username.replace(/ /g, "-")}`}
+            >{`${post.username} Posted:`}</Link>
             <p>{post.content}</p>
           </div>
         );
       })}
     </div>
   );
-}
+};
+export default AllPosts;

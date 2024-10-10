@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import style from "@/styles/header.module.css";
 
-export default function Header() {
+const Header: React.FC = () => {
   return (
     <header className={style["Header"]}>
       <SignedOut>
@@ -20,4 +20,6 @@ export default function Header() {
       </Link>
     </header>
   );
-}
+};
+
+export default Header;

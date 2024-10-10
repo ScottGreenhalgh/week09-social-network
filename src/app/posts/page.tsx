@@ -2,6 +2,9 @@ import AllPosts from "@/components/AllPosts";
 import { connect } from "@/utils/connect";
 import { auth } from "@clerk/nextjs/server";
 import dynamic from "next/dynamic";
+import { fetchUserProfile } from "@/utils/fetch";
+import { revalidatePath } from "next/cache";
+import { SignedIn, SignedOut } from "@clerk/nextjs";
 
 const { userId } = auth();
 
@@ -11,11 +14,7 @@ const ModularForm = dynamic(() => import("@/components/ModularForm"), {
 
 async function profileCheck() {
   "use server";
-  const db = connect();
-  const profile = await db.query(
-    `SELECT * FROM social_profiles WHERE clerk_id = $1`,
-    [userId]
-  );
+  const profile = await fetchUserProfile(userId);
   // conditional rendering based on profile
   if (profile.rowCount === 0) {
     return (
@@ -39,6 +38,7 @@ export default async function Page() {
       `INSERT INTO social_posts (clerk_id, content) VALUES ($1, $2)`,
       [userId, content]
     );
+    revalidatePath("/posts");
   }
 
   const fields = [
@@ -54,16 +54,20 @@ export default async function Page() {
   const profileResult = await profileCheck();
 
   if (profileResult) {
-    return profileResult; // If renderPage returns, render its JSX
+    return profileResult; // If renderPage returns JSX, render it
   }
 
   return (
     <div>
-      <h1>Form Page</h1>
-      <ModularForm fields={fields} onSubmit={handleCreatePost} />
-      <AllPosts />
+      <SignedIn>
+        <h1>Form Page</h1>
+        <ModularForm fields={fields} onSubmit={handleCreatePost} />
+        <AllPosts />
+      </SignedIn>
+
+      <SignedOut>
+        <h2>Please sign in.</h2>
+      </SignedOut>
     </div>
   );
 }
-
-//note: use this somewhere: import { revalidatePath } from 'next/navigation';

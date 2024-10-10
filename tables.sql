@@ -15,10 +15,3 @@ CREATE TABLE social_posts (
       ON DELETE CASCADE
 );
 
-
-SELECT 
-    social_posts.id,
-    social_profiles.username,
-    social_posts.content
-FROM social_posts
-INNER JOIN profiles ON social_posts.clerk_id = social_profiles.clerk_id;

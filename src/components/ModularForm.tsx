@@ -4,13 +4,13 @@ import React from "react";
 import * as Form from "@radix-ui/react-form";
 import style from "@/styles/form.module.css";
 
-interface Field {
+type Field = {
   name: string;
   label: string;
   type: string;
   required?: boolean;
   validationMessage?: string;
-}
+};
 
 interface ModularFormProps {
   fields: Field[];
@@ -24,7 +24,8 @@ const ModularForm: React.FC<ModularFormProps> = ({ fields, onSubmit }) => {
       onSubmit={(e) => {
         e.preventDefault();
         const formData = new FormData(e.target as HTMLFormElement);
-        onSubmit(formData);
+        onSubmit(formData); // call the function passed down as a prop
+        (e.target as HTMLFormElement).reset(); // empty the form contents
       }}
     >
       {fields.map((field) => (

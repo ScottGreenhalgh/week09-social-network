@@ -1,6 +1,6 @@
 # Basic Social Network
 
-This project involves creating a social network utilising Clerk and Radix UI elements. Clerk operates as a login system which heavily simplifies the method I was using in my past project. Using my clerk user id I can retrieve data from the login related to that account without needing to store it in a database first. This means I only really need 3 database tables to complete the task I did last week using 5 since Clerk can handle the majority of the work. Alongside this, clerk has login integration with other services such as Google, GitHub etc which offers the ability to one click login to the service, something I never implamented previously. Using Radix I can create elements rendering on my page quickly and easily.
+This project involves creating a social network utilising Clerk and Radix UI elements. Clerk operates as a login system which heavily simplifies the method I was using in my past project https://github.com/ScottGreenhalgh/week08-next-comments-form/. Using my clerk user id I can retrieve data from the login related to that account without needing to store it in a database first. This means I only really need 3 database tables to complete the task I did last week using 5 since Clerk can handle the majority of the work. Alongside this, clerk has login integration with other services such as Google, GitHub etc which offers the ability to one click login to the service, something I never implamented previously. Using Radix I can create elements rendering on my page quickly and easily. Overall I want to handle this much cleaner than this prior project. My return statements on my pages were incredibly long previously, so instead I'm going to try my best to break the output into smaller components.
 
 ### Project Setup
 
@@ -52,3 +52,7 @@ export default async function Page() {
   );
 }
 ```
+
+### Pages
+
+The page layout for this project required the usage of sign-in and sign-out for the clerk custom pages to operate (with the alternative being a redirect to an external site). Besides this I knew I needed a page for posts and a page for profile. The profile page
