@@ -7,6 +7,7 @@ type Props = {
 type Post = {
   id: number;
   content: string;
+  created_at: Date;
 };
 
 const ProfilePosts: React.FC<Props> = async ({ username }) => {
@@ -15,7 +16,8 @@ const ProfilePosts: React.FC<Props> = async ({ username }) => {
     `
         SELECT 
             social_posts.id,
-            social_posts.content
+            social_posts.content,
+            social_posts.created_at
         FROM social_posts
         INNER JOIN social_profiles ON social_posts.clerk_id = social_profiles.clerk_id
         WHERE social_profiles.username = $1;
@@ -27,9 +29,16 @@ const ProfilePosts: React.FC<Props> = async ({ username }) => {
     <div>
       <p>The following posts have been made my {username}:</p>
       {rows.map((post) => {
+        const date = new Date(post.created_at);
+        const formattedDate = `${date
+          .getHours()
+          .toString()
+          .padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")} 
+        ${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
         return (
           <div key={post.id}>
             <p>{post.content}</p>
+            <p>{formattedDate}</p>
           </div>
         );
       })}

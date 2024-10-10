@@ -53,7 +53,7 @@ export default async function Page() {
   const fields = [
     {
       name: "content",
-      label: "Post content",
+      label: "Post Content",
       type: "textarea",
       required: true,
     },
@@ -69,7 +69,7 @@ export default async function Page() {
   return (
     <div>
       <SignedIn>
-        <h1>Form Page</h1>
+        <h1>Public Discussion</h1>
         <ModularForm fields={fields} onSubmit={handleCreatePost} />
         <AllPosts />
       </SignedIn>

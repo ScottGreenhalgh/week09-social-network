@@ -10,6 +10,10 @@ To setup this project I used `npx create-next-app@latest` and selected Typescrip
 
 To setup Clerk, I went to their website and created a new project. I then grabbed the api keys and placed these inside my env file. From here I ran `npm i @clerk/nextjs` and followed this guide: https://clerk.com/docs/quickstarts/nextjs. From here I started work on creating the custom sign in/ sign up pages, for this I used this guide: https://clerk.com/docs/references/nextjs/custom-signup-signin-pages.
 
+### Pages
+
+The page layout for this project required the usage of sign-in and sign-out for the clerk custom pages to operate (with the alternative being a redirect to an external site). Besides this I knew I needed a page for posts and a page for profile. The profile page would contain information relevant to users finishing their initial profile setup or updating the existing data. The posts page would allow users to create posts viewable to all in a public space. The username associate with that post can be clicked on taking the user to /u/{username} which would contain all the posts that user has made. I added the /u/ as a buffer to prevent usernames from becoming equal to posts or profile causing problems. This is the structure I went for in the end.
+
 ### Forms
 
 During my last project, I realised how often I needed to use forms and their submissions to make database queries. Based on this I wanted to create a form component that was modular, so I could quickly create a form on any page by simply by using the component and passing the data the form needed to gather using props. Also, instead of passing the data over to an src/api location, I wanted to be able to handle the database requests on each individual page using the handleFormSubmit function with "use server". This would be a little more elegant in my opinion and should in theory perform better.
@@ -53,6 +57,91 @@ export default async function Page() {
 }
 ```
 
-### Pages
+### Components
 
-The page layout for this project required the usage of sign-in and sign-out for the clerk custom pages to operate (with the alternative being a redirect to an external site). Besides this I knew I needed a page for posts and a page for profile. The profile page would contain information relevant to users finishing their initial profile setup or updating the existing data. The posts page would allow users to create posts viewable to all in a public space. The username associate with that post can be clicked on taking the user to /u/{username} which would contain all the posts that user has made. I added the /u/ as a buffer to prevent usernames from becoming equal to posts or profile causing problems. This is the structure I went for in the end.
+Besides the ModularForm component which I was using to create all my forms, I needed to break other elements of my page apart. I started my moving my post fetching and displaying logic into seperate components. I made one for AllPosts and another for ProfilePosts. These each fetch different data from the database. One would fetch everything, the other would only fetch the rows that contain the username which matches the /u/{username}. I can then format what each of these look like independantly and then apply the back to their relevant pages. This also makes them incredibly reusable if I happen to need this data again later down the line on a different page. I also made a Header component which would handle my basic navigation throughout all of my pages. I can then place this inside my layout.tsx file so it displays on every page when rendered.
+
+### Images and Timestamps
+
+I wanted to import the clerk image onto the page if it existed. To do this I changed my next.config.mjs file to include the following:
+
+```js
+const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "img.clerk.com",
+      },
+    ],
+  },
+};
+```
+
+This would allow images from img.clerk.com to appear on the page, but images from any other source would be declined. From here I could grab the imageUrl using currentUser from clerk/nextjs/server and add this to the Image src.
+
+From here I had a look at timestamps. This is something I made a handly function for in my last project which looks like this:
+
+```ts
+const date = new Date(post.created_at);
+const formattedDate = `${date.getHours().toString().padStart(2, "0")}:${date
+  .getMinutes()
+  .toString()
+  .padStart(2, "0")} 
+${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+```
+
+Converting the timestamp format into something readable on the page. All I needed to do now was add the extra column to the social_posts table. To do this I did the following:
+
+```sql
+ALTER TABLE social_posts
+ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+```
+
+From here I just added the above function to my maps in AllPosts and ProfilePosts and outputting it onto the page. At this stage I also went back through all of my db.query() statements and ensured they were all encapsualted inside a try/catch/finally to help prevent any issues down the line.
+
+### Followers/following
+
+With the overall webpage so far meeting the requirements of this project (minus the styling), I decided to turn my attention towards some of the stretch goals. Specifically follower and following relationships. To start with I needed a new PostgreSQL table to handle this information which looked as follows:
+
+```sql
+CREATE TABLE social_relationships (
+    follower_id INT,
+    followee_id INT,
+    PRIMARY KEY (follower_id, followee_id),
+    FOREIGN KEY (follower_id) REFERENCES social_profiles(id) ON DELETE CASCADE,
+    FOREIGN KEY (followee_id) REFERENCES social_profiles(id) ON DELETE CASCADE
+);
+
+```
+
+To do various functions with this table I can do any of the following:
+
+```sql
+-- follow user
+INSERT INTO social_relationships (follower_id, followee_id) VALUES (1, 2);
+-- unfollow user
+DELETE FROM social_relationships WHERE follower_id = 1 AND followee_id = 2;
+-- get users followers
+SELECT follower_id FROM social_relationships WHERE followee_id = 2;
+-- get users followees
+SELECT followee_id FROM social_relationships WHERE follower_id = 1;
+```
+
+With this design solidified I moved onto implamenting this into the project. While integrating this approach I realised I made a bit of a blunder with my table definitions. The clerk_id isn't actually a number. I defined my table to store integers, but instead I'm trying to store a string, a small oversight on my part. This was where the fun began. I now needed to migrate the database collumns to use VARCHAR(255) instead of INT. This involved a few ALTER TABLE operations, which was a bit of a pain and required a fair bit of Googling. This was because my table had foreign keys attached so I couldn't directly alter the table without first removing these relations. I therefore had to remove these first then change the columns, and then add the foreign keys back. Here's how I did it:
+
+```sql
+-- Drop the foreign keys
+ALTER TABLE social_relationships DROP CONSTRAINT social_relationships_follower_id_fkey;
+ALTER TABLE social_relationships DROP CONSTRAINT social_relationships_followee_id_fkey;
+
+-- Change column types to VARCHAR(255)
+ALTER TABLE social_relationships
+ALTER COLUMN follower_id TYPE VARCHAR(255) USING follower_id::VARCHAR,
+ALTER COLUMN followee_id TYPE VARCHAR(255) USING followee_id::VARCHAR;
+
+-- Re-add the foreign keys with the new type
+ALTER TABLE social_relationships
+ADD CONSTRAINT social_relationships_follower_id_fkey FOREIGN KEY (follower_id) REFERENCES social_profiles(clerk_id) ON DELETE CASCADE,
+ADD CONSTRAINT social_relationships_followee_id_fkey FOREIGN KEY (followee_id) REFERENCES social_profiles(clerk_id) ON DELETE CASCADE;
+```

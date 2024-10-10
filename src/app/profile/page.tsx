@@ -4,6 +4,7 @@ import { connect } from "@/utils/connect";
 import dynamic from "next/dynamic";
 import { fetchUserProfile } from "@/utils/fetch";
 import { revalidatePath } from "next/cache";
+import Image from "next/image";
 
 const ModularForm = dynamic(() => import("@/components/ModularForm"), {
   ssr: false,
@@ -73,6 +74,14 @@ export default async function ProfilePage() {
   return (
     <div>
       <SignedIn>
+        {user?.imageUrl && (
+          <Image
+            src={user.imageUrl}
+            alt={`${user?.username}'s profile image`}
+            height={100}
+            width={100}
+          />
+        )}
         <h2>
           Welcome {user?.firstName} {user?.lastName}
         </h2>

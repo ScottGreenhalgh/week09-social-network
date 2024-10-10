@@ -6,11 +6,8 @@ const emptyAllTables = async () => {
   try {
     await db.query("BEGIN");
 
-    await db.query("TRUNCATE TABLE likes_dislikes RESTART IDENTITY CASCADE");
-    await db.query("TRUNCATE TABLE comments RESTART IDENTITY CASCADE");
-    await db.query("TRUNCATE TABLE forum_posts RESTART IDENTITY CASCADE");
-    await db.query("TRUNCATE TABLE preferences RESTART IDENTITY CASCADE");
-    await db.query("TRUNCATE TABLE login RESTART IDENTITY CASCADE");
+    await db.query("TRUNCATE TABLE social_profile RESTART IDENTITY CASCADE");
+    await db.query("TRUNCATE TABLE social_posts RESTART IDENTITY CASCADE");
 
     await db.query("COMMIT");
     console.log("All tables have been emptied.");
@@ -19,3 +16,5 @@ const emptyAllTables = async () => {
     console.error("Error emptying tables:", error);
   }
 };
+
+emptyAllTables();
