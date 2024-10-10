@@ -16,11 +16,15 @@ export default async function ProfilePage() {
   //use truthy falsy to determin if profile exists
   async function profileCheck(userId: string | null) {
     "use server";
-    const profile = await fetchUserProfile(userId);
-    if (profile.rowCount === 0) {
-      return false;
+    try {
+      const profile = await fetchUserProfile(userId);
+      if (profile.rowCount === 0) {
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error(error);
     }
-    return true;
   }
 
   async function handleUpdateProfile(formData: FormData) {
@@ -30,22 +34,26 @@ export default async function ProfilePage() {
     const bio = formData.get("bio") as string;
 
     // check whether a profile exists
-    const profile = await fetchUserProfile(userId);
-
-    if (profile.rowCount === 0) {
-      // insert into db
-      await db.query(
-        `INSERT INTO social_profiles (clerk_id, username, bio) VALUES ($1, $2, $3)`,
-        [userId, username, bio]
-      );
-    } else {
-      // update existing item
-      await db.query(
-        `UPDATE social_profiles SET username = $1, bio=$2 WHERE clerk_id=$3`,
-        [username, bio, userId]
-      );
+    try {
+      const profile = await fetchUserProfile(userId);
+      if (profile.rowCount === 0) {
+        // insert into db
+        await db.query(
+          `INSERT INTO social_profiles (clerk_id, username, bio) VALUES ($1, $2, $3)`,
+          [userId, username, bio]
+        );
+      } else {
+        // update existing item
+        await db.query(
+          `UPDATE social_profiles SET username = $1, bio=$2 WHERE clerk_id=$3`,
+          [username, bio, userId]
+        );
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      revalidatePath("/profile");
     }
-    revalidatePath("/profile");
   }
 
   const profileExists = await profileCheck(userId);

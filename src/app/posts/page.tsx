@@ -14,17 +14,21 @@ const ModularForm = dynamic(() => import("@/components/ModularForm"), {
 
 async function profileCheck() {
   "use server";
-  const profile = await fetchUserProfile(userId);
-  // conditional rendering based on profile
-  if (profile.rowCount === 0) {
-    return (
-      <div>
-        <p>Login and setup profile to create a post.</p>
-        <AllPosts />
-      </div>
-    );
+  try {
+    const profile = await fetchUserProfile(userId);
+    // conditional rendering based on profile
+    if (profile.rowCount === 0) {
+      return (
+        <div>
+          <p>Login and setup profile to create a post.</p>
+          <AllPosts />
+        </div>
+      );
+    }
+    return null; // allows further rendering
+  } catch (error) {
+    console.error(error);
   }
-  return null; // allows further rendering
 }
 
 export default async function Page() {
@@ -33,12 +37,17 @@ export default async function Page() {
     const db = connect();
     // get content from the form
     const content = formData.get("content") as string;
-    // add post to db
-    await db.query(
-      `INSERT INTO social_posts (clerk_id, content) VALUES ($1, $2)`,
-      [userId, content]
-    );
-    revalidatePath("/posts");
+    try {
+      // add post to db
+      await db.query(
+        `INSERT INTO social_posts (clerk_id, content) VALUES ($1, $2)`,
+        [userId, content]
+      );
+    } catch (error) {
+      console.error(error);
+    } finally {
+      revalidatePath("/posts");
+    }
   }
 
   const fields = [

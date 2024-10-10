@@ -15,3 +15,10 @@ CREATE TABLE social_posts (
       ON DELETE CASCADE
 );
 
+CREATE TABLE social_relationships (
+    follower_id INT,
+    followee_id INT,
+    PRIMARY KEY (follower_id, followee_id),
+    FOREIGN KEY (follower_id) REFERENCES social_profiles(id) ON DELETE CASCADE,
+    FOREIGN KEY (followee_id) REFERENCES social_profiles(id) ON DELETE CASCADE
+);

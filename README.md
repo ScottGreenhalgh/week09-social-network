@@ -55,4 +55,4 @@ export default async function Page() {
 
 ### Pages
 
-The page layout for this project required the usage of sign-in and sign-out for the clerk custom pages to operate (with the alternative being a redirect to an external site). Besides this I knew I needed a page for posts and a page for profile. The profile page
+The page layout for this project required the usage of sign-in and sign-out for the clerk custom pages to operate (with the alternative being a redirect to an external site). Besides this I knew I needed a page for posts and a page for profile. The profile page would contain information relevant to users finishing their initial profile setup or updating the existing data. The posts page would allow users to create posts viewable to all in a public space. The username associate with that post can be clicked on taking the user to /u/{username} which would contain all the posts that user has made. I added the /u/ as a buffer to prevent usernames from becoming equal to posts or profile causing problems. This is the structure I went for in the end.
