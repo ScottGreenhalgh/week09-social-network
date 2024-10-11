@@ -27,7 +27,7 @@ const ProfilePosts: React.FC<Props> = async ({ username }) => {
 
   return (
     <div>
-      <p>The following posts have been made my {username}:</p>
+      <p>Posts made by {username}:</p>
       {rows.map((post) => {
         const date = new Date(post.created_at);
         const formattedDate = `${date

@@ -8,6 +8,7 @@ const emptyAllTables = async () => {
 
     await db.query("TRUNCATE TABLE social_profile RESTART IDENTITY CASCADE");
     await db.query("TRUNCATE TABLE social_posts RESTART IDENTITY CASCADE");
+    await db.query("TRUNCATE social_relationships RESTART IDENTITY CASCADE");
 
     await db.query("COMMIT");
     console.log("All tables have been emptied.");

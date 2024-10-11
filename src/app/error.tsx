@@ -1,5 +1,7 @@
 "use client";
 
+import Header from "@/components/Header";
+import Link from "next/link";
 import { useEffect } from "react";
 
 export default function GlobalError({
@@ -17,8 +19,9 @@ export default function GlobalError({
   return (
     <html>
       <body>
+        <Header />
         <h2>Oh no! Something went wrong! 🙈</h2>
-        <p>{error.digest}</p>
+        <p>Error code: {error.digest}</p>
         <button onClick={() => reset()}>Try again</button>
       </body>
     </html>

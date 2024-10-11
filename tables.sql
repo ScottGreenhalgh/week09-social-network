@@ -17,9 +17,9 @@ CREATE TABLE social_posts (
 );
 
 CREATE TABLE social_relationships (
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     follower_id VARCHAR(255),
     followee_id VARCHAR(255),
-    PRIMARY KEY (follower_id, followee_id),
     FOREIGN KEY (follower_id) REFERENCES social_profiles(id) ON DELETE CASCADE,
     FOREIGN KEY (followee_id) REFERENCES social_profiles(id) ON DELETE CASCADE
 );

@@ -128,7 +128,7 @@ SELECT follower_id FROM social_relationships WHERE followee_id = 2;
 SELECT followee_id FROM social_relationships WHERE follower_id = 1;
 ```
 
-With this design solidified I moved onto implamenting this into the project. While integrating this approach I realised I made a bit of a blunder with my table definitions. The clerk_id isn't actually a number. I defined my table to store integers, but instead I'm trying to store a string, a small oversight on my part. This was where the fun began. I now needed to migrate the database collumns to use VARCHAR(255) instead of INT. This involved a few ALTER TABLE operations, which was a bit of a pain and required a fair bit of Googling. This was because my table had foreign keys attached so I couldn't directly alter the table without first removing these relations. I therefore had to remove these first then change the columns, and then add the foreign keys back. Here's how I did it:
+With this design solidified I moved onto implamenting this into the project. While integrating this approach I realised I made a bit of a blunder with my table definitions. The clerk_id isn't actually a number. I defined my table to store integers, but instead I'm trying to store a string, a small oversight on my part. This was where the fun began. I now needed to migrate the database columns to use VARCHAR(255) instead of INT. This involved a few ALTER TABLE operations, which was a bit of a pain and required a fair bit of Googling. This was because my table had foreign keys attached so I couldn't directly alter the table without first removing these relations. I therefore had to remove these first then change the columns, and then add the foreign keys back. Here's how I did it:
 
 ```sql
 -- Drop the foreign keys
@@ -145,3 +145,17 @@ ALTER TABLE social_relationships
 ADD CONSTRAINT social_relationships_follower_id_fkey FOREIGN KEY (follower_id) REFERENCES social_profiles(clerk_id) ON DELETE CASCADE,
 ADD CONSTRAINT social_relationships_followee_id_fkey FOREIGN KEY (followee_id) REFERENCES social_profiles(clerk_id) ON DELETE CASCADE;
 ```
+
+From here I created a button that would toggle between follow and unfollow when pressed running a function to either INSERT or DELETE the entry. I would then grab this information from the table and map it to the profile when the page loaded to keep an active count of who was following who and displaying that data to the user. This is when I ran into yet another problem. I needed to take this clerk_id stored in the table and convert it back to a username when displaying which was the easy part, but I also needed an id to reference when using .map() to supply a key to the div. Another oversight when making this table, I forgot to add a primary key for the table or rather for some reason I defined them with this: `PRIMARY KEY (follower_id, followee_id),`. When I tried adding it with ALTER TABLE, it gave me an error, and told me that multiple primary keys weren't allowed. This is where I realised it had decided to take follower_id and followee_id both as primary keys when I first created the table. So first I had to remove this relationship before adding my own id primary key. I did this with the following:
+
+```sql
+-- remove existing primary key
+ALTER TABLE social_relationships DROP CONSTRAINT social_relationships_pkey;
+
+-- Add the new id column and set it as the primary key
+ALTER TABLE social_relationships
+ADD COLUMN id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY;
+
+```
+
+Turns out I knew a lot less about SQL than I thought I did going into this project, but it has been a good learning experience to see what to do when issues like this do come up.

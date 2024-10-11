@@ -1,7 +1,13 @@
 import ProfilePosts from "@/components/ProfilePosts";
 import { connect } from "@/utils/connect";
-import { fetchProfileByUsername, fetchUserProfile } from "@/utils/fetch";
+import {
+  fetchProfileByUsername,
+  fetchUserProfile,
+  getFollowees,
+  getFollowers,
+} from "@/utils/fetch";
 import { auth } from "@clerk/nextjs/server";
+import { revalidatePath } from "next/cache";
 import dynamic from "next/dynamic";
 
 const FollowButton = dynamic(() => import("@/components/FollowButton"), {
@@ -23,6 +29,18 @@ let viewerData: {
   clerk_id: string;
 };
 
+let followerData: {
+  id: number;
+  username: string;
+  follower_id: string;
+}[];
+
+let followeeData: {
+  id: number;
+  username: string;
+  follower_id: string;
+}[];
+
 export default async function UserPage({ params }: { params: Params }) {
   const db = connect();
   const { userId } = auth();
@@ -38,6 +56,17 @@ export default async function UserPage({ params }: { params: Params }) {
 
     profileData = profile.rows[0];
     viewerData = viewer.rows[0];
+
+    const follower = await getFollowers(profileData.clerk_id);
+    const followee = await getFollowees(profileData.clerk_id);
+
+    followerData = follower.rows;
+    followeeData = followee.rows;
+
+    // console.log("profile id", profileData.clerk_id);
+    // console.log("viewer id", viewerData.clerk_id);
+    // console.log("follower(s)", followerData);
+    // console.log("followee(s)", followeeData);
   } catch (error) {
     console.error(error);
   }
@@ -53,6 +82,8 @@ export default async function UserPage({ params }: { params: Params }) {
       );
     } catch (error) {
       console.error(error);
+    } finally {
+      revalidatePath(`/u/${username}`);
     }
   };
 
@@ -66,6 +97,8 @@ export default async function UserPage({ params }: { params: Params }) {
       );
     } catch (error) {
       console.error(error);
+    } finally {
+      revalidatePath(`/u/${username}`);
     }
   };
 
@@ -81,12 +114,40 @@ export default async function UserPage({ params }: { params: Params }) {
   return (
     <div>
       {viewerData.username !== profileData.username ? (
-        <FollowButton onClick={onClick} isFollowing={isFollowing} />
+        <FollowButton onSubmit={onClick} isFollowing={isFollowing} />
       ) : (
         <p>Viewing your own profile</p>
       )}
-      <p>{`${formattedUsername}'s Profile`}</p>
-      <p>{profileData.bio}</p>
+      <div>
+        <p>{`${formattedUsername}'s Profile`}</p>
+        <p>{profileData.bio}</p>
+      </div>
+      <div>
+        {followerData.length === 0 ? (
+          <p>{`${formattedUsername} is not following anyone.`}</p>
+        ) : (
+          <div>
+            <p>{`${formattedUsername} is following:`}</p>
+            {followerData.map((follower) => (
+              <div key={follower.id}>
+                <p>{follower.username}</p>
+              </div>
+            ))}
+          </div>
+        )}
+        {followeeData.length === 0 ? (
+          <p>{`${formattedUsername} is not followed by anyone.`}</p>
+        ) : (
+          <div>
+            <p>{`${formattedUsername} is followed by:`}</p>
+            {followeeData.map((followee) => (
+              <div key={followee.id}>
+                <p>{followee.username}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
       <ProfilePosts username={formattedUsername} />
     </div>
   );
