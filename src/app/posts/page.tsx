@@ -6,32 +6,12 @@ import { fetchUserProfile } from "@/utils/fetch";
 import { revalidatePath } from "next/cache";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 
-const { userId } = auth();
-
 const ModularForm = dynamic(() => import("@/components/ModularForm"), {
   ssr: false,
 });
 
-async function profileCheck() {
-  "use server";
-  try {
-    const profile = await fetchUserProfile(userId);
-    // conditional rendering based on profile
-    if (profile.rowCount === 0) {
-      return (
-        <div>
-          <p>Login and setup profile to create a post.</p>
-          <AllPosts />
-        </div>
-      );
-    }
-    return null; // allows further rendering
-  } catch (error) {
-    console.error(error);
-  }
-}
-
 export default async function Page() {
+  const { userId } = auth();
   async function handleCreatePost(formData: FormData) {
     "use server";
     const db = connect();
@@ -47,6 +27,25 @@ export default async function Page() {
       console.error(error);
     } finally {
       revalidatePath("/posts");
+    }
+  }
+
+  async function profileCheck() {
+    "use server";
+    try {
+      const profile = await fetchUserProfile(userId);
+      // conditional rendering based on profile
+      if (profile.rowCount === 0) {
+        return (
+          <div>
+            <p>Login and setup profile to create a post.</p>
+            <AllPosts />
+          </div>
+        );
+      }
+      return null; // allows further rendering
+    } catch (error) {
+      console.error(error);
     }
   }
 
