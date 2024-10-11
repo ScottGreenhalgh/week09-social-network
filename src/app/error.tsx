@@ -1,7 +1,6 @@
 "use client";
 
 import Header from "@/components/Header";
-import Link from "next/link";
 import { useEffect } from "react";
 
 export default function GlobalError({

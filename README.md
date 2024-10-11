@@ -159,3 +159,7 @@ ADD COLUMN id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY;
 ```
 
 Turns out I knew a lot less about SQL than I thought I did going into this project, but it has been a good learning experience to see what to do when issues like this do come up.
+
+### Likes/Dislikes
+
+From here a had a look at likes/dislikes logic. Previously I handled this in a client component, but similarly to the rest of this project, I'm going to attempt to handle almost everything on the server.

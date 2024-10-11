@@ -23,3 +23,15 @@ CREATE TABLE social_relationships (
     FOREIGN KEY (follower_id) REFERENCES social_profiles(id) ON DELETE CASCADE,
     FOREIGN KEY (followee_id) REFERENCES social_profiles(id) ON DELETE CASCADE
 );
+
+CREATE TABLE social_likes_dislikes (
+    id SERIAL PRIMARY KEY,
+    clerk_id TEXT NOT NULL, 
+    post_id INT NOT NULL,
+    is_like BOOLEAN, -- TRUE for like, FALSE for dislike
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (clerk_id) REFERENCES social_profiles(clerk_id) ON DELETE CASCADE,
+    FOREIGN KEY (post_id) REFERENCES social_posts(id) ON DELETE CASCADE,
+    CONSTRAINT unique_social_like_dislike UNIQUE (clerk_id, post_id)
+);
+

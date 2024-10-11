@@ -72,6 +72,7 @@ export default async function UserPage({ params }: { params: Params }) {
   }
   //console.log(profileData);
 
+  // -------- Follower Logic ---------
   const handleFollow = async () => {
     "use server";
     const db = connect();
@@ -148,7 +149,7 @@ export default async function UserPage({ params }: { params: Params }) {
           </div>
         )}
       </div>
-      <ProfilePosts username={formattedUsername} />
+      <ProfilePosts username={formattedUsername} viewerData={viewerData} />
     </div>
   );
 }
