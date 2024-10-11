@@ -162,4 +162,76 @@ Turns out I knew a lot less about SQL than I thought I did going into this proje
 
 ### Likes/Dislikes
 
-From here a had a look at likes/dislikes logic. Previously I handled this in a client component, but similarly to the rest of this project, I'm going to attempt to handle almost everything on the server. Little did I know at this stage that this would be a huge headache to handle.
+From here a had a look at likes/dislikes logic. Previously I handled this in a client component, but similarly to the rest of this project, I'm going to attempt to handle almost everything on the server. Little did I know at this stage that this would be a huge headache to handle. previosuly when I handled likes and dislikes I utilised useEffect and useState to manage the rendering and fetching the data from api routes. This time I wanted to handle it all in server components with the most minimal logic being sent to the client as possible. To start this process I created a new table called social_likes_dislikes, keeping the social prefix to differentiate between existing tables in my database. It contained a primary key, a refernce to the clerk_id, post_id, a boolean determining likes/dislikes and some foreign keys to link it all together. Then I modified the existing social_posts table to include 2 extra columns, one for likes and one for dislikes.
+
+This is where I ran into my first problem. When making my request, I needed a way of referencing the current postId. Since I broke my logic to handle likes, unlikes, dislikes and undislikes into 4 seperate functions which would be passed to the client based on the result of a ternary operator. These functions would look something like this:
+
+```tsx
+const handleUndislike = async () => {
+  "use server";
+  const db = connect();
+  try {
+    await db.query(
+      `DELETE FROM social_likes_dislikes WHERE clerk_id = $1 AND post_id = $2 AND is_like = $3`,
+      [viewerData.clerk_id, postId, false]
+    );
+  } catch (error) {
+    console.error(error);
+  } finally {
+    revalidatePath(`/u/${username}`);
+  }
+};
+```
+
+The problem is getting that postId back to this function. This would've been very simple with a useState, however I decided I wasn't going to handle my logic this way. So instead I needed to pass this data back to the function in the form of a parameter. This param would look something like `post.id: number`. Then I just needed to work out where to get this prop from, and the only place where I could access this was within the .map(). This is because prior to running the map postsData.rows would return an array of objects. Without mapping them I had no way of directly accessing the specific post.id I needed here. Under the map I could then use my ternary operator to pass this prop back to the function by doing this:
+
+```jsx
+const onClickLike = post.isLiked
+  ? () => handleUnlike(post.id)
+  : () => handleLike(post.id);
+const onClickDislike = post.isDisliked
+  ? () => handleUndislike(post.id)
+  : () => handleDislike(post.id);
+```
+
+Using callback functions here to ensure that they aren't called early. This solution looked good on paper but when it came down to testing it would thrown an error.
+
+```
+Error: Only plain objects, and a few built-ins, can be passed to Server Actions. Classes or null prototypes are not supported.
+```
+
+This is the same error I ran into previously when handling followers and followees which I previously resolved by using a form to submit instead of just using a button directly. In this instance I was doing that, however I wasn't using the formData given back, and was instead treating it as if it was just a button component. So instead I decided to utilise the FormData to pass data back to the server. Instead of passing the post.id back as a prop in the function I can pass down post.id to the form component (which is acting as my button) and passing that back through the formData to my function. To do this I created a hidden input Form.Field which would hold my value of postId, so that when it's submitted it can be passed to the function as a parameter.
+
+While here, I decided to restructure all of my functions to handling either likes or dislikes. From here I can use the formData isLike boolean to track whether it has been liked or not and use truthy falsy to determin if the action needed is to INSERT or DELETE.
+
+This is when I ran into my next problem, the boolean action islike given to my component as a prop was returning as a `Promise<boolean>` and not a boolean as I expected (bless typescript for telling me this). This is because I was using an await db.query() to fetch from the database to determin this value. Since it hasn't resolved when the button is given the data, it's still a Promise. So after another round of googling, I found a way of resolving the Promise before passing it down, giving me the expected boolean. The thread I was reading suggesting using something called await Promise.all. I'm still not entirely sure how it works exactly, but it essentially resolved all my promises before returning them. I ran this through the map so it would do this for each post. I then mapped through this under my return to give me access to these variables under my tsx return for my ProfilePosts.tsx component.
+
+Looking back, this simple concept was a huge headache to deal with. A concept I've created many times in the past was made very difficult by the server side constraints I put on myself, but thankfully I managed to get it working while still handling the majority of the work on the server.
+
+### Styling
+
+With everything I needed to complete the project thrown on the page somewhere, it was time to make it a little more presentable. Luckily, since I was using Radix for some of my elements, I could simply utilise some of this styling for a few of my elements. For elements not using this, I turned my attention to past projects and grabbed some of this styling to quickly get this roughly in the correct place. If some elements aren't exactly where I need them to be, I can move around the div tags to make it fit a little better. I will also try keep my styles scoped as much as possible too, utilising module.css files as best I can.
+
+## Requirements
+
+For this project the following requirements were completed:
+
+- Sign-up and login with Clerk
+
+- Error page viewable if page doesn't exist.
+
+- Utilised Radix to create components (specifically forms) in ModularForm, LikeDislikeButton and FollowButton.
+
+- Users can create their own user profile where this information is stored in its own table.
+
+- Users can create posts which are viewable in a global comments environment. User specific comments are viewable on their individual profiles.
+
+Additional features added to the project include:
+
+- Clicking on usernames in the global comments section redirects to that users profile.
+
+- Users can follow/unfollow each other and this information is displayed on each profile.
+
+- Likes and dislikes can be given to individual posts by visiting their profile.
+
+Somethign I would probably change in the future is how I'm handling the likes and dislike buttons. Currently they heavily rely on server side functions which are currently not very reusable. I wanted to avoid using api routes for this project, but it seems that when handling the logic for these buttons this way would've probably been better. This would've allowed me to place these buttons in more than one location without rewriting all of my logic. I could alternatively move them to my fetch.ts file and just call them at their respective locations. This is because I did also want to place them under the global posts, but without copying everthing over, this is less than ideal.
