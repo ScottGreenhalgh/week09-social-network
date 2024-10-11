@@ -162,4 +162,4 @@ Turns out I knew a lot less about SQL than I thought I did going into this proje
 
 ### Likes/Dislikes
 
-From here a had a look at likes/dislikes logic. Previously I handled this in a client component, but similarly to the rest of this project, I'm going to attempt to handle almost everything on the server.
+From here a had a look at likes/dislikes logic. Previously I handled this in a client component, but similarly to the rest of this project, I'm going to attempt to handle almost everything on the server. Little did I know at this stage that this would be a huge headache to handle.

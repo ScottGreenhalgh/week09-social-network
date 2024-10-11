@@ -10,6 +10,8 @@ CREATE TABLE social_posts (
     clerk_id TEXT NOT NULL,
     content TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    likes INT,
+    dislikes INT,
     CONSTRAINT fk_clerk
       FOREIGN KEY (clerk_id) 
       REFERENCES social_profiles (clerk_id)

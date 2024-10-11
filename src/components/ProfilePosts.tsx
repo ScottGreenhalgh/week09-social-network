@@ -39,15 +39,50 @@ const ProfilePosts: React.FC<Props> = async ({ username, viewerData }) => {
   );
 
   // --------- Likes Logic ----------
-  const handleLike = async (postId: number) => {
+  const handleLike = async (formData: FormData) => {
     "use server";
+    const postId = formData.get("postId") as string;
     const db = connect();
+
+    // Check if a like already exists
+    const existingLike = await db.query(
+      `SELECT * FROM social_likes_dislikes WHERE clerk_id = $1 AND post_id = $2 AND is_like = true`,
+      [viewerData.clerk_id, postId]
+    );
+
     try {
-      await db.query(
-        `INSERT INTO social_likes_dislikes (clerk_id, post_id, is_like) VALUES ($1, $2, $3)
-         ON CONFLICT (clerk_id, post_id) DO UPDATE SET is_like = EXCLUDED.is_like`,
-        [viewerData.clerk_id, postId, true]
-      );
+      if (existingLike.rowCount === 0) {
+        // Insert like and increment the likes count in social_posts
+        await db.query(
+          `
+          WITH insert_like AS (
+            INSERT INTO social_likes_dislikes (clerk_id, post_id, is_like)
+            VALUES ($1, $2, true)
+            ON CONFLICT (clerk_id, post_id) DO NOTHING
+            RETURNING post_id
+          )
+          UPDATE social_posts
+          SET likes = likes + 1
+          WHERE id = $2 AND EXISTS (SELECT 1 FROM insert_like)
+          `,
+          [viewerData.clerk_id, postId]
+        );
+      } else {
+        // Remove like and decrement the likes count in social_posts
+        await db.query(
+          `
+          WITH delete_like AS (
+            DELETE FROM social_likes_dislikes
+            WHERE clerk_id = $1 AND post_id = $2 AND is_like = true
+            RETURNING post_id
+          )
+          UPDATE social_posts
+          SET likes = likes - 1
+          WHERE id = $2 AND EXISTS (SELECT 1 FROM delete_like)
+          `,
+          [viewerData.clerk_id, postId]
+        );
+      }
     } catch (error) {
       console.error(error);
     } finally {
@@ -55,14 +90,50 @@ const ProfilePosts: React.FC<Props> = async ({ username, viewerData }) => {
     }
   };
 
-  const handleUnlike = async (postId: number) => {
+  const handleDislike = async (formData: FormData) => {
     "use server";
+    const postId = formData.get("postId") as string;
     const db = connect();
+
+    // Check if a dislike already exists
+    const existingDislike = await db.query(
+      `SELECT * FROM social_likes_dislikes WHERE clerk_id = $1 AND post_id = $2 AND is_like = false`,
+      [viewerData.clerk_id, postId]
+    );
+
     try {
-      await db.query(
-        `DELETE FROM social_likes_dislikes WHERE clerk_id = $1 AND post_id = $2 AND is_like = $3`,
-        [viewerData.clerk_id, postId, true]
-      );
+      if (existingDislike.rowCount === 0) {
+        // Insert dislike and increment the dislikes count in social_posts
+        await db.query(
+          `
+          WITH insert_dislike AS (
+            INSERT INTO social_likes_dislikes (clerk_id, post_id, is_like)
+            VALUES ($1, $2, false)
+            ON CONFLICT (clerk_id, post_id) DO NOTHING
+            RETURNING post_id
+          )
+          UPDATE social_posts
+          SET dislikes = dislikes + 1
+          WHERE id = $2 AND EXISTS (SELECT 1 FROM insert_dislike)
+          `,
+          [viewerData.clerk_id, postId]
+        );
+      } else {
+        // Remove dislike and decrement the dislikes count in social_posts
+        await db.query(
+          `
+          WITH delete_dislike AS (
+            DELETE FROM social_likes_dislikes
+            WHERE clerk_id = $1 AND post_id = $2 AND is_like = false
+            RETURNING post_id
+          )
+          UPDATE social_posts
+          SET dislikes = dislikes - 1
+          WHERE id = $2 AND EXISTS (SELECT 1 FROM delete_dislike)
+          `,
+          [viewerData.clerk_id, postId]
+        );
+      }
     } catch (error) {
       console.error(error);
     } finally {
@@ -70,39 +141,7 @@ const ProfilePosts: React.FC<Props> = async ({ username, viewerData }) => {
     }
   };
 
-  const handleDislike = async (postId: number) => {
-    "use server";
-    const db = connect();
-    try {
-      await db.query(
-        `INSERT INTO social_likes_dislikes (clerk_id, post_id, is_like) VALUES ($1, $2, $3)
-       ON CONFLICT (clerk_id, post_id) DO UPDATE SET is_like = EXCLUDED.is_like`,
-        [viewerData.clerk_id, postId, false]
-      );
-    } catch (error) {
-      console.error(error);
-    } finally {
-      revalidatePath(`/u/${username}`);
-    }
-  };
-
-  const handleUndislike = async (postId: number) => {
-    "use server";
-    const db = connect();
-    try {
-      await db.query(
-        `DELETE FROM social_likes_dislikes WHERE clerk_id = $1 AND post_id = $2 AND is_like = $3`,
-        [viewerData.clerk_id, postId, false]
-      );
-    } catch (error) {
-      console.error(error);
-    } finally {
-      revalidatePath(`/u/${username}`);
-    }
-  };
-  // Check if the user likes or dislikes the post
   const checkLike = async (postId: number) => {
-    "use server";
     const db = connect();
     const like = await db.query(
       `SELECT * FROM social_likes_dislikes WHERE clerk_id = $1 AND post_id = $2 AND is_like = $3`,
@@ -112,7 +151,6 @@ const ProfilePosts: React.FC<Props> = async ({ username, viewerData }) => {
   };
 
   const checkDislike = async (postId: number) => {
-    "use server";
     const db = connect();
     const dislike = await db.query(
       `SELECT * FROM social_likes_dislikes WHERE clerk_id = $1 AND post_id = $2 AND is_like = $3`,
@@ -120,8 +158,8 @@ const ProfilePosts: React.FC<Props> = async ({ username, viewerData }) => {
     );
     return !!dislike.rowCount;
   };
-
-  const postsLikeDislike = await Promise.all(
+  // resolve promises
+  const postsWithLikeDislike = await Promise.all(
     rows.map(async (post) => {
       const isLiked = await checkLike(post.id);
       const isDisliked = await checkDislike(post.id);
@@ -133,7 +171,7 @@ const ProfilePosts: React.FC<Props> = async ({ username, viewerData }) => {
   return (
     <div>
       <p>Posts made by {username}:</p>
-      {postsLikeDislike.map((post) => {
+      {postsWithLikeDislike.map((post) => {
         const date = new Date(post.created_at);
         const formattedDate = `${date
           .getHours()
@@ -141,24 +179,19 @@ const ProfilePosts: React.FC<Props> = async ({ username, viewerData }) => {
           .padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")} 
         ${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
 
-        const onClickLike = post.isLiked
-          ? () => handleUnlike(post.id)
-          : () => handleLike(post.id);
-        const onClickDislike = post.isDisliked
-          ? () => handleUndislike(post.id)
-          : () => handleDislike(post.id);
-
         return (
           <div key={post.id}>
             <p>{post.content}</p>
             <p>{formattedDate}</p>
             <LikeDislikeButton
-              onSubmit={onClickLike}
+              postId={post.id}
+              onSubmit={handleLike}
               action={post.isLiked}
               isLike={true}
             />
             <LikeDislikeButton
-              onSubmit={onClickDislike}
+              postId={post.id}
+              onSubmit={handleDislike}
               action={post.isDisliked}
               isLike={false}
             />
