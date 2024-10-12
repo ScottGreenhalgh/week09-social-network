@@ -1,4 +1,5 @@
 import { connect } from "@/utils/connect";
+import { redirect } from "next/navigation";
 
 export async function fetchUserProfile(userId: string | null) {
   const db = connect();
@@ -40,4 +41,27 @@ export async function getFollowers(userId: string | null) {
     [userId]
   );
   return followers;
+}
+
+export async function checkProfileSetup(
+  userId: string | null,
+  referer: string | null
+) {
+  if (userId) {
+    const db = connect();
+    const response = await db.query(
+      `SELECT * FROM social_profiles WHERE clerk_id = $1`,
+      [userId]
+    );
+
+    // if no profile returns redirect
+    if (
+      response.rowCount === 0 &&
+      !["/sign-in", "/sign-up", "/profile"].includes(
+        new URL(referer || "").pathname
+      )
+    ) {
+      redirect("/profile");
+    }
+  }
 }

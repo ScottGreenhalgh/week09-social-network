@@ -1,3 +1,12 @@
+.FormContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
 .FormRoot {
   width: 260px;
 }
@@ -78,6 +87,7 @@
 
 .Button:hover {
   background-color: var(--mauve-3);
+  cursor: pointer;
 }
 
 .Button:focus {

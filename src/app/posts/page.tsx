@@ -2,9 +2,13 @@ import AllPosts from "@/components/AllPosts";
 import { connect } from "@/utils/connect";
 import { auth } from "@clerk/nextjs/server";
 import dynamic from "next/dynamic";
-import { fetchUserProfile } from "@/utils/fetch";
+import { checkProfileSetup, fetchUserProfile } from "@/utils/fetch";
 import { revalidatePath } from "next/cache";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
+
+import { headers } from "next/headers";
+
+import style from "@/styles/posts.module.css";
 
 const ModularForm = dynamic(() => import("@/components/ModularForm"), {
   ssr: false,
@@ -12,6 +16,9 @@ const ModularForm = dynamic(() => import("@/components/ModularForm"), {
 
 export default async function Page() {
   const { userId } = auth();
+  const referer = headers().get("referer");
+  await checkProfileSetup(userId, referer);
+
   async function handleCreatePost(formData: FormData) {
     "use server";
     const db = connect();
@@ -66,15 +73,15 @@ export default async function Page() {
   }
 
   return (
-    <div>
+    <div className={style["main-container"]}>
       <SignedIn>
-        <h1>Public Discussion</h1>
+        <h1 className="text-3xl underline">Public Discussion</h1>
         <ModularForm fields={fields} onSubmit={handleCreatePost} />
         <AllPosts />
       </SignedIn>
 
       <SignedOut>
-        <h2>Please sign in.</h2>
+        <h2 className="text-4xl">Please sign in.</h2>
       </SignedOut>
     </div>
   );

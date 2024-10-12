@@ -2,6 +2,8 @@ import { connect } from "@/utils/connect";
 import dynamic from "next/dynamic";
 import { revalidatePath } from "next/cache";
 
+import style from "@/styles/user.module.css";
+
 const LikeDislikeButton = dynamic(
   () => import("@/components/LikeDislikeButton"),
   {
@@ -21,6 +23,11 @@ type Post = {
   id: number;
   content: string;
   created_at: Date;
+};
+
+type LikeDislike = {
+  likes: number;
+  dislikes: number;
 };
 
 const ProfilePosts: React.FC<Props> = async ({ username, viewerData }) => {
@@ -142,6 +149,7 @@ const ProfilePosts: React.FC<Props> = async ({ username, viewerData }) => {
   };
 
   const checkLike = async (postId: number) => {
+    "use server";
     const db = connect();
     const like = await db.query(
       `SELECT * FROM social_likes_dislikes WHERE clerk_id = $1 AND post_id = $2 AND is_like = $3`,
@@ -151,6 +159,7 @@ const ProfilePosts: React.FC<Props> = async ({ username, viewerData }) => {
   };
 
   const checkDislike = async (postId: number) => {
+    "use server";
     const db = connect();
     const dislike = await db.query(
       `SELECT * FROM social_likes_dislikes WHERE clerk_id = $1 AND post_id = $2 AND is_like = $3`,
@@ -158,19 +167,32 @@ const ProfilePosts: React.FC<Props> = async ({ username, viewerData }) => {
     );
     return !!dislike.rowCount;
   };
+
+  const currentLikesDislikes = async (postId: number) => {
+    const db = connect();
+    const { rows } = await db.query<LikeDislike>(
+      `SELECT likes, dislikes FROM social_posts WHERE id = $1`,
+      [postId]
+    );
+    const { likes, dislikes } = rows[0];
+
+    return { likes, dislikes };
+  };
+
   // resolve promises
   const postsWithLikeDislike = await Promise.all(
     rows.map(async (post) => {
       const isLiked = await checkLike(post.id);
       const isDisliked = await checkDislike(post.id);
+      const { likes, dislikes } = await currentLikesDislikes(post.id);
 
-      return { ...post, isLiked, isDisliked };
+      return { ...post, isLiked, isDisliked, likes, dislikes };
     })
   );
 
   return (
-    <div>
-      <p>Posts made by {username}:</p>
+    <div className={style["posts-container"]}>
+      <p className="text-2xl">{username}&#39;s Posts:</p>
       {postsWithLikeDislike.map((post) => {
         const date = new Date(post.created_at);
         const formattedDate = `${date
@@ -179,22 +201,28 @@ const ProfilePosts: React.FC<Props> = async ({ username, viewerData }) => {
           .padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")} 
         ${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
 
+        currentLikesDislikes(post.id);
+
         return (
-          <div key={post.id}>
-            <p>{post.content}</p>
-            <p>{formattedDate}</p>
-            <LikeDislikeButton
-              postId={post.id}
-              onSubmit={handleLike}
-              action={post.isLiked}
-              isLike={true}
-            />
-            <LikeDislikeButton
-              postId={post.id}
-              onSubmit={handleDislike}
-              action={post.isDisliked}
-              isLike={false}
-            />
+          <div key={post.id} className={style["individual-post"]}>
+            <p className={style["post-content"]}>{post.content}</p>
+            <p className={style["post-timestamp"]}>{formattedDate}</p>
+            <div className={style["like-container"]}>
+              <LikeDislikeButton
+                postId={post.id}
+                onSubmit={handleLike}
+                action={post.isLiked}
+                isLike={true}
+                likes={post.likes}
+              />
+              <LikeDislikeButton
+                postId={post.id}
+                onSubmit={handleDislike}
+                action={post.isDisliked}
+                isLike={false}
+                dislikes={post.dislikes}
+              />
+            </div>
           </div>
         );
       })}

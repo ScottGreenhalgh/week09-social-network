@@ -208,9 +208,17 @@ This is when I ran into my next problem, the boolean action islike given to my c
 
 Looking back, this simple concept was a huge headache to deal with. A concept I've created many times in the past was made very difficult by the server side constraints I put on myself, but thankfully I managed to get it working while still handling the majority of the work on the server.
 
+One bug so far is that you can't like and dislike at the same time, which is fine, but usually when interacting with these buttons, clicking the opposing button changes the like to a dislike. I probably need to modify my SQL statements to handle likes and dislikes transitions better.
+
+### Profile setup redirect
+
+Just before working on styling I quickly tackled page redirects if the profile setup hasn't been completed. This was necessary because visiting a users profile page without a setup profile, so without rewriting how the profile information is gathered, I decided to instead force the user to fill in this information. I initially made this under the RootLayout function in layout.tsx, but then realise this wasn't executing the functions correctly. Instead I moved this to my fetch.ts file and modified the logic slightly. Since my fetch.ts file is outside the app router, I don't have access to auth() or headers() so both of these values needed are passed in as params. If no rows are returned and you are not under the /sign-in, /sign-up or /profile routes then you will redirect back to the profile. Once this information is given, you can continue visiting the other pages.
+
 ### Styling
 
 With everything I needed to complete the project thrown on the page somewhere, it was time to make it a little more presentable. Luckily, since I was using Radix for some of my elements, I could simply utilise some of this styling for a few of my elements. For elements not using this, I turned my attention to past projects and grabbed some of this styling to quickly get this roughly in the correct place. If some elements aren't exactly where I need them to be, I can move around the div tags to make it fit a little better. I will also try keep my styles scoped as much as possible too, utilising module.css files as best I can.
+
+I decided to also include some React Icons from https://react-icons.github.io/react-icons/. I placed these under my LikeDislikeButton to act as the icons for my buttons.
 
 ## Requirements
 
@@ -234,4 +242,6 @@ Additional features added to the project include:
 
 - Likes and dislikes can be given to individual posts by visiting their profile.
 
-Somethign I would probably change in the future is how I'm handling the likes and dislike buttons. Currently they heavily rely on server side functions which are currently not very reusable. I wanted to avoid using api routes for this project, but it seems that when handling the logic for these buttons this way would've probably been better. This would've allowed me to place these buttons in more than one location without rewriting all of my logic. I could alternatively move them to my fetch.ts file and just call them at their respective locations. This is because I did also want to place them under the global posts, but without copying everthing over, this is less than ideal.
+- Added redirects back to the /profile route if setup hasn't been finished.
+
+Something I would probably change in the future is how I'm handling the likes and dislike buttons. Currently they heavily rely on server side functions which are currently not very reusable. I wanted to avoid using api routes for this project, but it seems that when handling the logic for these buttons this way would've probably been better. This would've allowed me to place these buttons in more than one location without rewriting all of my logic. I could alternatively move them to my fetch.ts file and just call them at their respective locations. This is because I did also want to place them under the global posts, but without copying everthing over, this is less than ideal.

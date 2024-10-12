@@ -6,6 +6,9 @@ import { fetchUserProfile } from "@/utils/fetch";
 import { revalidatePath } from "next/cache";
 import Image from "next/image";
 
+import style from "@/styles/profile.module.css";
+import Link from "next/link";
+
 const ModularForm = dynamic(() => import("@/components/ModularForm"), {
   ssr: false,
 });
@@ -13,6 +16,12 @@ const ModularForm = dynamic(() => import("@/components/ModularForm"), {
 export default async function ProfilePage() {
   const { userId } = auth();
   const user = await currentUser();
+  const userData = await fetchUserProfile(userId);
+  let currentUsername: string = "";
+
+  if (!(userData.rowCount === 0)) {
+    currentUsername = userData.rows[0].username;
+  }
 
   //use truthy falsy to determin if profile exists
   async function profileCheck(userId: string | null) {
@@ -65,37 +74,46 @@ export default async function ProfilePage() {
       label: "Username",
       type: "username",
       required: true,
-      validationMessage: "Please provide a unique username",
+      validationMessage: "Enter a unique username",
     },
-    { name: "bio", label: "Bio", type: "textarea", required: false },
+    { name: "bio", label: "Bio", type: "textarea", required: true },
   ];
 
   //console.log(user);
   return (
-    <div>
+    <div className={style["main-container"]}>
       <SignedIn>
         {user?.imageUrl && (
           <Image
+            className={style["profile-img"]}
             src={user.imageUrl}
             alt={`${user?.username}'s profile image`}
             height={100}
             width={100}
           />
         )}
-        <h2>
+        <h2 className="text-2xl">
           Welcome {user?.firstName} {user?.lastName}
         </h2>
         <p> You are signed in with {user?.emailAddresses[0].emailAddress}</p>
         {profileExists ? (
-          <p>Update your profile:</p>
+          <>
+            <Link
+              href={`/u/${currentUsername}`}
+              className="text-amber-500 hover:text-orange-500"
+            >
+              @{currentUsername}
+            </Link>
+            <p className="text-2xl">Update your profile:</p>
+          </>
         ) : (
-          <p>Finish your profile setup:</p>
+          <p className="text-2xl">Finish your profile setup:</p>
         )}
         <ModularForm fields={fields} onSubmit={handleUpdateProfile} />
       </SignedIn>
 
       <SignedOut>
-        <h2>Please sign in.</h2>
+        <h2 className="text-4xl">Please sign in.</h2>
       </SignedOut>
     </div>
   );

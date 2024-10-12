@@ -1,6 +1,7 @@
 import ProfilePosts from "@/components/ProfilePosts";
 import { connect } from "@/utils/connect";
 import {
+  checkProfileSetup,
   fetchProfileByUsername,
   fetchUserProfile,
   getFollowees,
@@ -9,6 +10,10 @@ import {
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import dynamic from "next/dynamic";
+import { headers } from "next/headers";
+
+import style from "@/styles/user.module.css";
+import Link from "next/link";
 
 const FollowButton = dynamic(() => import("@/components/FollowButton"), {
   ssr: false,
@@ -42,10 +47,12 @@ let followeeData: {
 }[];
 
 export default async function UserPage({ params }: { params: Params }) {
-  const db = connect();
   const { userId } = auth();
+  const referer = headers().get("referer");
+  await checkProfileSetup(userId, referer);
   const { username } = params;
   const formattedUsername = username.replace(/-/g, " "); // convert username back
+  const db = connect();
   try {
     const profile = await fetchProfileByUsername(formattedUsername);
     const viewer = await fetchUserProfile(userId);
@@ -113,17 +120,16 @@ export default async function UserPage({ params }: { params: Params }) {
   const onClick = checkFollowing.rowCount ? handleUnfollow : handleFollow;
 
   return (
-    <div>
+    <div className={style["main-container"]}>
       {viewerData.username !== profileData.username ? (
         <FollowButton onSubmit={onClick} isFollowing={isFollowing} />
       ) : (
-        <p>Viewing your own profile</p>
+        <p className="text-gray-500">Viewing your own profile</p>
       )}
-      <div>
-        <p>{`${formattedUsername}'s Profile`}</p>
+      <div className={style["profile-container"]}>
+        <p className="text-amber-500 text-3xl">{`@${formattedUsername}`}</p>
         <p>{profileData.bio}</p>
-      </div>
-      <div>
+        <br />
         {followerData.length === 0 ? (
           <p>{`${formattedUsername} is not following anyone.`}</p>
         ) : (
@@ -131,7 +137,12 @@ export default async function UserPage({ params }: { params: Params }) {
             <p>{`${formattedUsername} is following:`}</p>
             {followerData.map((follower) => (
               <div key={follower.id}>
-                <p>{follower.username}</p>
+                <Link
+                  href={`/u/${follower.username}`}
+                  className="text-gray-500 italic"
+                >
+                  @{follower.username}
+                </Link>
               </div>
             ))}
           </div>
@@ -143,7 +154,12 @@ export default async function UserPage({ params }: { params: Params }) {
             <p>{`${formattedUsername} is followed by:`}</p>
             {followeeData.map((followee) => (
               <div key={followee.id}>
-                <p>{followee.username}</p>
+                <Link
+                  href={`/u/${followee.username}`}
+                  className="text-gray-500 italic"
+                >
+                  @{followee.username}
+                </Link>
               </div>
             ))}
           </div>

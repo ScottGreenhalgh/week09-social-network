@@ -12,6 +12,10 @@
   margin: 0 auto;
   padding: 0 auto;
   text-align: center;
+
+  --light-color: #8878a557;
+  --dark-color: #2e29387c;
+  --darker-color: #19161f7c;
 }
 
 body {
