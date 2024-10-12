@@ -17,9 +17,9 @@
 
 .post-container {
   min-width: 70vw;
-  min-height: 50vh;
+  min-height: 40vh;
   max-width: 90vw;
-  max-height: 55vh;
+  max-height: 45vh;
   width: auto;
   height: auto;
   overflow: auto;
@@ -46,6 +46,18 @@
   color: var(--violet-11);
 }
 
+.post-username {
+  padding-left: 2rem;
+}
+
+.profile-image {
+  border-radius: 50%;
+  border: var(--darker-color) 2px solid;
+  position: absolute;
+  top: -17px;
+  left: 0;
+}
+
 @media (max-width: 480px) {
   .post-timestamp {
     display: none;
@@ -54,5 +66,12 @@
   .post-container {
     min-width: 70vw;
     max-width: 70vw;
+  }
+}
+
+@media (min-width: 768px) {
+  .post-container {
+    min-width: 40vw;
+    max-width: 40vw;
   }
 }

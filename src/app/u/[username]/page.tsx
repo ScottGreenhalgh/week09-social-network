@@ -14,6 +14,7 @@ import { headers } from "next/headers";
 
 import style from "@/styles/user.module.css";
 import Link from "next/link";
+import Image from "next/image";
 
 const FollowButton = dynamic(() => import("@/components/FollowButton"), {
   ssr: false,
@@ -27,6 +28,8 @@ let profileData: {
   username: string;
   bio: string;
   clerk_id: string;
+  image_url?: string;
+  nickname: string;
 };
 
 let viewerData: {
@@ -121,14 +124,21 @@ export default async function UserPage({ params }: { params: Params }) {
 
   return (
     <div className={style["main-container"]}>
-      {viewerData.username !== profileData.username ? (
-        <FollowButton onSubmit={onClick} isFollowing={isFollowing} />
-      ) : (
-        <p className="text-gray-500">Viewing your own profile</p>
+      {profileData?.image_url && (
+        <Image
+          className={style["profile-image"]}
+          src={profileData.image_url}
+          alt={`${profileData.username}'s profile image`}
+          height={100}
+          width={100}
+        />
       )}
       <div className={style["profile-container"]}>
-        <p className="text-amber-500 text-3xl">{`@${formattedUsername}`}</p>
-        <p>{profileData.bio}</p>
+        <p className="text-amber-500 text-xl">
+          {`${profileData.nickname}`}
+          <span className="text-gray-400 text-sm">{` @${formattedUsername}`}</span>
+        </p>
+        <p className="text-sm">{profileData.bio}</p>
         <br />
         {followerData.length === 0 ? (
           <p>{`${formattedUsername} is not following anyone.`}</p>
@@ -139,7 +149,7 @@ export default async function UserPage({ params }: { params: Params }) {
               <div key={follower.id}>
                 <Link
                   href={`/u/${follower.username}`}
-                  className="text-gray-500 italic"
+                  className="text-gray-400 hover:text-gray-300 italic"
                 >
                   @{follower.username}
                 </Link>
@@ -156,7 +166,7 @@ export default async function UserPage({ params }: { params: Params }) {
               <div key={followee.id}>
                 <Link
                   href={`/u/${followee.username}`}
-                  className="text-gray-500 italic"
+                  className="text-gray-400 italic"
                 >
                   @{followee.username}
                 </Link>
@@ -165,6 +175,11 @@ export default async function UserPage({ params }: { params: Params }) {
           </div>
         )}
       </div>
+      {viewerData.username !== profileData.username ? (
+        <FollowButton onSubmit={onClick} isFollowing={isFollowing} />
+      ) : (
+        <p className="text-gray-400">Viewing your own profile</p>
+      )}
       <ProfilePosts username={formattedUsername} viewerData={viewerData} />
     </div>
   );

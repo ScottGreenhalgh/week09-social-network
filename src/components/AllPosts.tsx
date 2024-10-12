@@ -2,6 +2,7 @@ import { connect } from "@/utils/connect";
 import Link from "next/link";
 
 import style from "@/styles/posts.module.css";
+import Image from "next/image";
 
 const db = connect();
 
@@ -10,6 +11,8 @@ type Post = {
   content: string;
   username: string;
   created_at: Date;
+  image_url?: string;
+  nickname: string;
 };
 
 const AllPosts: React.FC = async () => {
@@ -17,6 +20,8 @@ const AllPosts: React.FC = async () => {
     SELECT 
         social_posts.id,
         social_profiles.username,
+        social_profiles.image_url,
+        social_profiles.nickname,
         social_posts.content,
         social_posts.created_at
     FROM social_posts
@@ -35,10 +40,22 @@ const AllPosts: React.FC = async () => {
           ${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
         return (
           <div key={post.id} className={style["individual-post"]}>
+            {post?.image_url && (
+              <Image
+                className={style["profile-image"]}
+                src={post.image_url}
+                alt={`${post.username}'s profile image`}
+                height={50}
+                width={50}
+              />
+            )}
             <Link
-              className="text-amber-500 hover:text-orange-500"
+              className={`text-amber-500 hover:text-orange-500 ${style["post-username"]}`}
               href={`/u/${post.username.replace(/ /g, "-")}`}
-            >{`@${post.username}`}</Link>
+            >
+              {post.nickname}
+              <span className="text-gray-400 text-sm">{` @${post.username}`}</span>
+            </Link>
             <p>{post.content}</p>
             <p className={style["post-timestamp"]}>{formattedDate}</p>
           </div>

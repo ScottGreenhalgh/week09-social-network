@@ -42,6 +42,7 @@ export default async function ProfilePage() {
     const db = connect();
     const username = formData.get("username") as string;
     const bio = formData.get("bio") as string;
+    const nickname = formData.get("nickname") as string;
 
     // check whether a profile exists
     try {
@@ -49,20 +50,20 @@ export default async function ProfilePage() {
       if (profile.rowCount === 0) {
         // insert into db
         await db.query(
-          `INSERT INTO social_profiles (clerk_id, username, bio) VALUES ($1, $2, $3)`,
-          [userId, username, bio]
+          `INSERT INTO social_profiles (clerk_id, username, bio, image_url, nickname) VALUES ($1, $2, $3, $4, $5)`,
+          [userId, username, bio, user?.imageUrl || null, nickname]
         );
       } else {
         // update existing item
         await db.query(
-          `UPDATE social_profiles SET username = $1, bio=$2 WHERE clerk_id=$3`,
-          [username, bio, userId]
+          `UPDATE social_profiles SET username = $1, bio=$2, image_url=$3, nickname=$4 WHERE clerk_id=$5`,
+          [username, bio, user?.imageUrl || null, nickname, userId]
         );
       }
     } catch (error) {
       console.error(error);
     } finally {
-      revalidatePath("/profile");
+      revalidatePath("/");
     }
   }
 
@@ -76,6 +77,7 @@ export default async function ProfilePage() {
       required: true,
       validationMessage: "Enter a unique username",
     },
+    { name: "nickname", label: "Nickname", type: "text", required: true },
     { name: "bio", label: "Bio", type: "textarea", required: true },
   ];
 

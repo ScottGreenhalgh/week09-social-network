@@ -220,6 +220,8 @@ With everything I needed to complete the project thrown on the page somewhere, i
 
 I decided to also include some React Icons from https://react-icons.github.io/react-icons/. I placed these under my LikeDislikeButton to act as the icons for my buttons.
 
+Alongside this, during this styling process I was getting feedback from peers as to how the layout should look and what is most intuitive, giving me references to existing social media platforms. For this reason I went back through my code and changed some of the user redirects and added a little more information to my profile setup, specifically a nickname and a profile picture. The profile image can be obtained directly through clerk, meanwhile the nickname was simply added to the fields of my modular form. I made some changes to these tables to only allow 14 characters for both the username and the nickname, preventing users from using extrememly long names. I then restructured how elements would sit on the page and tweaked the styling overall styling to better align with how someone would navigate the page. From here I also used @media queries to ensure that all monitor (and phone) sizes were getting the optimal experience. There's still a few features I would like to change. I probably want the likes/dislikes button moved onto the global posts page too, but given how I directly tied it down to profile specific pages, it would require some major tweaking first.
+
 ## Requirements
 
 For this project the following requirements were completed:

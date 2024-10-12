@@ -192,7 +192,6 @@ const ProfilePosts: React.FC<Props> = async ({ username, viewerData }) => {
 
   return (
     <div className={style["posts-container"]}>
-      <p className="text-2xl">{username}&#39;s Posts:</p>
       {postsWithLikeDislike.map((post) => {
         const date = new Date(post.created_at);
         const formattedDate = `${date

@@ -1,8 +1,10 @@
 CREATE TABLE social_profiles (
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     clerk_id TEXT UNIQUE NOT NULL,
-    username TEXT,
-    bio TEXT
+    username VARCHAR(14), -- 14 character limit
+    bio TEXT,
+    img TEXT,
+    nickname VARCHAR(14) -- 14 character limit
 );
 
 CREATE TABLE social_posts (
