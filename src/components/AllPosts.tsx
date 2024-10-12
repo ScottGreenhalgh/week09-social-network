@@ -26,7 +26,6 @@ const AllPosts: React.FC = async () => {
 
   return (
     <div className={style["post-container"]}>
-      <h3 className="text-2xl underline">All Posts</h3>
       {rows.map((post) => {
         const date = new Date(post.created_at);
         const formattedDate = `${date
