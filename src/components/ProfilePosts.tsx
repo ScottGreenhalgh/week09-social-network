@@ -93,7 +93,7 @@ const ProfilePosts: React.FC<Props> = async ({ username, viewerData }) => {
     } catch (error) {
       console.error(error);
     } finally {
-      revalidatePath(`/u/${username}`);
+      revalidatePath(`/u/${username.replace(/ /g, "-")}`);
     }
   };
 
@@ -144,7 +144,7 @@ const ProfilePosts: React.FC<Props> = async ({ username, viewerData }) => {
     } catch (error) {
       console.error(error);
     } finally {
-      revalidatePath(`/u/${username}`);
+      revalidatePath(`/u/${username.replace(/ /g, "-")}`);
     }
   };
 

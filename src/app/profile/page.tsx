@@ -101,7 +101,7 @@ export default async function ProfilePage() {
         {profileExists ? (
           <>
             <Link
-              href={`/u/${currentUsername}`}
+              href={`/u/${currentUsername.replace(/ /g, "-")}`}
               className="text-amber-500 hover:text-orange-500"
             >
               @{currentUsername}
