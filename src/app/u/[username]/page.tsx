@@ -49,6 +49,15 @@ let followeeData: {
   follower_id: string;
 }[];
 
+export function generateMetadata({ params }: { params: Params }) {
+  const { username } = params;
+  const formattedUsername = username.replace(/-/g, " ");
+  return {
+    title: `${formattedUsername}'s Profile`,
+    description: `See all posts from ${formattedUsername} and a little about them.`,
+  };
+}
+
 export default async function UserPage({ params }: { params: Params }) {
   const { userId } = auth();
   const referer = headers().get("referer");

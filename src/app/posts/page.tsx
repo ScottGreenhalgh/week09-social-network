@@ -14,6 +14,12 @@ const ModularForm = dynamic(() => import("@/components/ModularForm"), {
   ssr: false,
 });
 
+export const metadata = {
+  title: "All Posts",
+  description:
+    "Global discussion page where content can be posted for all to view | Basic Social Network",
+};
+
 export default async function Page() {
   const { userId } = auth();
   const referer = headers().get("referer");
